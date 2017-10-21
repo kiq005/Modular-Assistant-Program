@@ -1,0 +1,15 @@
+
+Modular Assistant Program (MAP)
+	Create Modules:
+		✔	Implement Darla @done (17-10-13 16:42)
+		✔	Implement Mathematician @done (17-10-14 17:22)
+		☐	Implement Tasker
+		☐	Implement Chatter
+		✔	Implement Reminder @high @done (17-10-06 20:32)
+		✔	Implement Notificator @critical @done (17-10-06 20:32)
+	Implementações Extras:
+		☐	Darla can run simple functions (lambdas?)
+		☐	Darla can create tasks
+	☐	Optimize @low
+	☐	Dynamic add/remove modules
+	
