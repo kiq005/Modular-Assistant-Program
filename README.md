@@ -53,3 +53,6 @@ To create modules using **Python**, you just have to create a `.py` file in the 
 
 ## More
 To know more about creating **modules** and **components**, or to know about the default modules that comes with MAP, please, use the [wiki page](https://github.com/kiq005/Modular-Assistant-Program/wiki). Any trouble using the program? Found bugs? Has suggestions? Please, use the [issues page](https://github.com/kiq005/Modular-Assistant-Program/issues). In any case, you can also send a e-mail to: [kaique_q@live.com](mailto:kaique_q@live.com). 
+
+## Updates
+2017-10-23 : Now, the Manager (`MBS.h`) can read commands from the modules. The `$EXIT$` command has been added to the Manager, it allows to exit the program, sending a destroy command for all modules before exit. You can override the `void destroy()` function of the modules directly with C++, with Python you just need to use `PythonDestroy(PythonInput, "p_pytest", "test_destroy");` to call a destroy function [(wiki)](https://github.com/kiq005/Modular-Assistant-Program/wiki/Python). To pass a command to the Manager, the module just have to return the command. The Darla module return the command `$EXIT$` when it receive `::exit` from the user.

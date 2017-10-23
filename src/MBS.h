@@ -41,12 +41,12 @@ public:
  */
 class Module{
 private:
-	bool active = true;
 	OutputComponent *outputComponent;
 
 public:
 	Manager *manager = NULL;
 	int loopTime = -1;
+	bool active = true;
 	/* Constructor */
 	Module(){
 		outputComponent = new OutputComponent();
@@ -72,7 +72,7 @@ public:
 		return *this;
 	}
 	/* Input function, return a output for a given input.
-	 * Shall be overriden by input modules.
+	 * Shall be overridden by input modules.
 	 */
 	virtual std::string input(std::string inp){
 		(void)inp;
@@ -87,9 +87,10 @@ public:
 	/* Return true if the module is active */
 	inline bool isActive() const {return active;}
 	/* Define the module as inactive, and let the Manager destroy it in
-	 * the next loop cycle.
+	 * the next loop cycle. It can be overriden if the module have to finalize
+	 * anything.
 	 */
-	inline void destroy() {active=false;};
+	virtual void destroy(){active=false;};
 };
 
 bool sortByLoopTime(const std::unique_ptr<Module> &A, const std::unique_ptr<Module> &B){
@@ -104,11 +105,12 @@ class Manager{
 private:
 	std::vector<std::unique_ptr<Module>> modules;
 
-	long t;// Mantém a quantidade de ciclos de loop realizados
-	bool r;// Verifica se deve atualizar
+	long t; // Loop counter
+	bool r; // Should Refresh?
+	bool running; // Is Running?
 public:
 	/* Constructor */
-	Manager():t(0),r(false){}
+	Manager():t(0),r(false),running(true){}
 
 	/* 
 	 * Returns the output from the first input module that answers.
@@ -117,10 +119,14 @@ public:
 		std::string out;
 		for(auto& m : modules){
 			out = m->input(inp);
-			//std::cout << "OUT: " << out << out.length() << std::endl;
 			if( out.length()>0 ){
-				//std::cout << "Found output." << std::endl;
-				return out;
+				if(out == "$EXIT$"){// Received a command to Exit
+					running = false;
+					break;
+				}
+				else{
+					return out;
+				}
 			}
 		}
 		return "";
@@ -134,9 +140,9 @@ public:
 		while(active()){
 			std::string str, ret;
 			std::getline(std::cin,  str);// TODO: It shall use a default input module!
-			//start_clock;
+			start_clock;
 			ret = input(str);
-			//end_and_show;
+			end_and_show;
 			std::cout << ret << std::endl;// TODO: It shall use a default output module
 		}
 	}
@@ -149,6 +155,10 @@ public:
 			refresh();
 			loop();
 			std::this_thread::sleep_for(std::chrono::seconds(1));
+		}
+		// When is no more active.
+		for(auto& m : modules){
+			m->destroy();// Propagate the destruction to all modules
 		}
 	}
 
@@ -206,9 +216,9 @@ public:
 		t_i.join();
 		t_l.join();
 	}
-	/* True, while the number of modules is greater than 0 */
+	/* Return true if the Manager is active */
 	bool active(){
-		return modules.size() > 0;
+		return running and modules.size() > 0;
 	}
 	/* Shall Refresh:
 	 * This function were used to avoid refreshing when were not

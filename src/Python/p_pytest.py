@@ -6,3 +6,6 @@ def output(inp):
 
 def loop():
 	print 'Here is python code!'
+
+def test_destroy():
+	print "Goodbye from Python!"

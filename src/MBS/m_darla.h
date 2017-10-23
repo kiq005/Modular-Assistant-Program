@@ -146,8 +146,10 @@ private:
 
 	std::string command(std::string cmd){
 		std::string str = "";
-		if(cmd=="::exit")
+		if(cmd=="::exit"){
+			str = "$EXIT$";
 			destroy();
+		}
 		else if(cmd=="::log")
 			outputLog();
 		else if(cmd[2]=='@'){// X has a answer Y

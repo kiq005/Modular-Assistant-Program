@@ -48,6 +48,7 @@ public: \
 		PyObject_CallFunction(myFunction, (char*)""); \
 		Py_Finalize(); \
 	} \
+	void destroy(); \
 };
 
 #define PythonInputModule(MODULENAME, FILENAME, FUNCTIONNAME) \
@@ -65,6 +66,19 @@ public: \
 		Py_Finalize(); \
 		return ret; \
 	} \
-};
+	void destroy();\
+}; 
+
+
+#define PythonDestroy(MODULENAME, FILENAME, FUNCTIONNAME) \
+void MODULENAME::destroy(){ \
+	setenv("PYTHONPATH", pythonpath(),1); \
+	Py_Initialize(); \
+	PyObject* myModule = PyImport_ImportModule(FILENAME); \
+	PyObject* myFunction = PyObject_GetAttrString(myModule,(char*)FUNCTIONNAME); \
+	PyObject_CallFunction(myFunction, (char*)""); \
+	Py_Finalize(); \
+	active=false; \
+}
 
 #endif
