@@ -49,10 +49,26 @@ You can create your own **modules** and **components**. To do so, you have two o
 
 Is recommended using **C++** to create modules. To do so, you just have to create a `.h` file in the `src/MBS` folder, with a class that extends from `Module`, and override the function `void loop()` or `std::string input(std::string inp)`. In this way, you have full control over the module you are creating, and can make it as much complex as you wish. After created, you need to **include** the module in `map.h`.
 
-To create modules using **Python**, you just have to create a `.py` file in the `src/Python` folder. Then, open the file `src/MBS/m_python_test.h` and add a `PythonLoopModule(Name, File, Function)` or `PythonInputModule(Name, File, Function)`, with the `Name` of the module, the `File` from `src/Python`, and the `Function` to call. Remember that a **PythonLoopModule** function receive no arguments, and a **PythonInputModule** receive one `(char*)`(or Python String) argument and **must return a String**(at least `""` if the module won't output with the given input).
+To create modules using **Python**, you just have to create a `.py` file in the `src/Python` folder. The file will be something like this:
+```Python
+def loop():
+	print 'Fuction for a looping module!'
+
+def input(inp):
+	inp = inp.lower();
+	if inp == "is python there?":
+		return "Function for the input module!"
+	return ""
+
+def destroy():
+	print "Function to destroy the module!"
+```
+You can also create extra functions, classes, or anything you like inside the file. You don't need to declare the function if you won't use it.
 
 ## More
 To know more about creating **modules** and **components**, or to know about the default modules that comes with MAP, please, use the [wiki page](https://github.com/kiq005/Modular-Assistant-Program/wiki). Any trouble using the program? Found bugs? Has suggestions? Please, use the [issues page](https://github.com/kiq005/Modular-Assistant-Program/issues). In any case, you can also send a e-mail to: [kaique_q@live.com](mailto:kaique_q@live.com). 
 
 ## Updates
+2017-10-26 : Creating Python modules is easier now. All you need is to create the python file, there is no more need to modify `src/MBS/m_python_test.h` every time you create a new Python module (this means that we get rid of the old auto-class creation, and now use a unique class that the objects represent the modules). Now, the Python module can be a loop and input module at the same time (that was not possible in the old way). Also, `c_notification` and `m_reminder.h` works with more generic messages.
+
 2017-10-23 : Now, the Manager (`MBS.h`) can read commands from the modules. The `$EXIT$` command has been added to the Manager, it allows to exit the program, sending a destroy command for all modules before exit. You can override the `void destroy()` function of the modules directly with C++, with Python you just need to use `PythonDestroy(PythonInput, "p_pytest", "test_destroy");` to call a destroy function [(wiki)](https://github.com/kiq005/Modular-Assistant-Program/wiki/Python). To pass a command to the Manager, the module just have to return the command. The Darla module return the command `$EXIT$` when it receive `::exit` from the user.
