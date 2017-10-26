@@ -3,7 +3,7 @@
 /* Libraries */
 #include "global.h"
 #include "MBS.h"
-/* Medules */
+/* Modules */
 #include "./MBS/m_test.h"
 #include "./MBS/m_reminder.h"
 #include "./MBS/m_darla.h"

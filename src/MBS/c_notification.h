@@ -4,15 +4,6 @@
 #include <libnotify/notify.h>
 #include <gdk-pixbuf/gdk-pixbuf.h>
 
-#define LOW NOTIFY_URGENCY_LOW
-#define NORMAL NOTIFY_URGENCY_NORMAL
-#define CRITICAL NOTIFY_URGENCY_CRITICAL
-
-#define ICON_BOOK "./img/handy/book-icon.png"
-#define ICON_CALENDAR "./img/handy/calendar-icon.png"
-#define ICON_CLOCK "./img/handy/clock-icon.png"
-#define ICON_MAIL "./img/handy/mail-icon.png"
-
 /* NotificationComponent
  * Is a output component that send the messages via notifications. This is a 
  * Linux specific module (it may work on Debian based). Other modules shall
@@ -31,93 +22,66 @@ public:
 
 	void notification_destroy();
 
-	void notify(const std::string& title, const std::string& text, const NotifyUrgency& urgency, const std::string& image_path);
-	void notify(const std::string& title, const std::string& text, const NotifyUrgency& urgency);
-	void notify(const std::string& title, const std::string& text, const std::string& image_path);
-	void notify(const std::string& title, const std::string& text);	
+	/* Notify!
+	 * Use libnotify to send notifications to the user.
+	 */
+	void notify(const std::string& title, const std::string& text, const NotifyUrgency& urgency = NOTIFY_URGENCY_LOW, const std::string& image_path = ""){
+		NotifyNotification * msg;
+		msg = notify_notification_new(title.c_str(), text.c_str(), NULL);
+		notify_notification_set_urgency(msg, urgency);
+		if(image_path.length() > 0){
+			GdkPixbuf *pixbuf = gdk_pixbuf_new_from_file(image_path.c_str(), NULL);
+			notify_notification_set_image_from_pixbuf(msg, pixbuf);
+		}
+		if(!notify_notification_show(msg, NULL))
+			ERROR("Couldn't send notification.");
+		g_object_unref(G_OBJECT(msg));
+	}
 
 	void output(std::string msg) override{
-		/* Simple message */
-		if(msg.length()<4 or msg[0]!='@' or msg[1]!='@'){
-			this->notify("Message: ", msg, LOW, ICON_BOOK);
-			return;
-		}
-		/* Custom message. It is passed as @@Priority|Title|Text */
-		msg.erase(0, 2);
-
-		/* Prio */
-		size_t pos = msg.find("|");
-		int prio = stoi(msg.substr(0, pos));
-		msg.erase(0, pos+1);
-		/* Title */
-		pos = msg.find("|");
-		std::string title = msg.substr(0, pos);
-		msg.erase(0, pos+1);
-		/* Text */
-		std::string text = msg.substr(0, msg.length()-1);
-		/* Icon and Urgency*/
+		/* Notification Title */
+		std::string title = "Notification: ";
 		NotifyUrgency urgency;
 		std::string icon;
+		int prio = 0;
+		if( msg[0]=='(' and msg[2]==')'){// Has prio
+			prio = int(msg[1]);
+		}
+		size_t pos = msg.find(":");
+		if(pos != std::string::npos){// Has Title
+			title = msg.substr(0, pos);
+			msg.erase(0, pos+1);
+		}
+		
 		switch(prio){
 			case 5:
-				title = "(5) " + title;
-				urgency = CRITICAL;
-				icon = ICON_CLOCK;
+				urgency = NOTIFY_URGENCY_CRITICAL;
+				icon = imgpath("handy/clock-icon.png");
 				break;
 			case 4:
-				title = "(4) " + title;
-				urgency = NORMAL;//CRITICAL;
-				icon = ICON_CLOCK;
+				urgency = NOTIFY_URGENCY_NORMAL;//CRITICAL;
+				icon = imgpath("handy/clock-icon.png");
 				break;
 			case 3:
-				title = "(3) " + title;
-				urgency = LOW;//NORMAL;
-				icon = ICON_CLOCK;
+				urgency = NOTIFY_URGENCY_LOW;//NORMAL;
+				icon = imgpath("handy/clock-icon.png");
 				break;
 			case 2:
-				title = "(2) " + title;
-				urgency = LOW;//NORMAL;
-				icon = ICON_CLOCK;
+				urgency = NOTIFY_URGENCY_LOW;//NORMAL;
+				icon = imgpath("handy/clock-icon.png");
 				break;
 			case 1:
-				title = "(1) " + title;
-				urgency = LOW;
-				icon = ICON_CLOCK;
+				urgency = NOTIFY_URGENCY_LOW;
+				icon = imgpath("handy/clock-icon.png");
 				break;
 			default:
-				urgency = LOW;
-				icon = ICON_CLOCK;
+				urgency = NOTIFY_URGENCY_LOW;
+				icon = imgpath("handy/book-icon.png");
 		}
+
 		/* Send notification */
-		this->notify(title, text, urgency, icon);		
+		this->notify(title, msg, urgency, icon);		
 	}
 };
-
-void NotificationComponent::notify(const std::string& title, const std::string& text, const NotifyUrgency& urgency){
-	notify(title, text, urgency, "");
-}
-
-void NotificationComponent::notify(const std::string& title, const std::string& text, const std::string& image_path){
-	notify(title, text, NOTIFY_URGENCY_LOW, image_path);
-}
-
-void NotificationComponent::notify(const std::string& title, const std::string& text){
-	notify(title, text, NOTIFY_URGENCY_LOW, "");
-}
-/* Notify!
- * Use libnotify to send notifications to the user.
- */
-void NotificationComponent::notify(const std::string& title, const std::string& text, const NotifyUrgency& urgency, const std::string& image_path){
-	NotifyNotification * msg;
-	msg = notify_notification_new(title.c_str(), text.c_str(), NULL);
-	notify_notification_set_urgency(msg, urgency);
-	if(image_path.length() > 0){
-		GdkPixbuf *pixbuf = gdk_pixbuf_new_from_file(image_path.c_str(), NULL);
-		notify_notification_set_image_from_pixbuf(msg, pixbuf);
-	}
-	if(!notify_notification_show(msg, NULL))
-		ERROR("Couldn't send notification.");
-	g_object_unref(G_OBJECT(msg));
-}
 
 #endif

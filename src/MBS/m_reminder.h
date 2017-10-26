@@ -4,6 +4,7 @@
 #include <queue>
 #include <fstream>
 #include <ctime>
+#include <algorithm>
 
 struct Note{
 	std::string title;
@@ -48,24 +49,18 @@ public:
 	}
 
 private:
-	/* Notifications can just be added via thread controll checking */
-	void addNotification(Note n){
-		notification_queue.push(n);
-	}
 
 	/* One notification from notification_queue is sended by cycle of thread_controller */
 	void queueNotify(){
-		Note n = notification_queue.front();
+		Note new_notification = notification_queue.front();
 		notification_queue.pop();
-		if(last_notification==n){
-			//output("Already notified...");
+		if(last_notification==new_notification)//Already notified...
 			return;
-		}
-		last_notification = n;
-		output( "@@" + std::to_string(n.prio) + "|" + n.title + "|" + n.text);
+		last_notification = new_notification;
+		output( "(" + std::to_string(new_notification.prio) + ")" + new_notification.title + ":" + new_notification.text);
 	}
 
-	int countTabs(std::string str){
+	int countTabulations(std::string str){
 		int count = 0;
 		size_t nPos = str.find("\t", 0);
 		while(nPos != std::string::npos){
@@ -80,16 +75,16 @@ private:
 	void searchTasks(){
 		std::ifstream infile(datapath("map.todo"));
 		std::string line;
-		std::string subClass[5] = {"Task:", "", "", "", ""};
+		std::string subClass[5] = {"Task", "", "", "", ""};
 		int tTabs=0;
 		size_t nPos;
 
 		while(std::getline(infile, line)){
-			if( line == "NOTE:" )
+			if( line == "NOTE" )
 				break;
 			if( line.find("✔") != std::string::npos)
 				continue;
-			tTabs = countTabs(line);
+			tTabs = countTabulations(line);
 
 			if( (nPos = line.find("☐")) != std::string::npos ){
 				int prio = 0;
@@ -137,17 +132,14 @@ private:
 						/* Difference */
 						int t1 = julian_day(now->tm_year, now->tm_mon, now->tm_mday);
 						int t2 = julian_day(chd.tm_year, chd.tm_mon, chd.tm_mday);
-						// TODO: use native max function...
-						prio = MAX(5 + t1 - t2, 0);// @due -> t2 - t1
-						//*@due	(+5-due)
+						prio = std::max(5 + t1 - t2, 0);//*@due	(+5-due)
 					}
 					else{
 						ERROR("Can't understand priority");
 					}
 				}
 				/* Add note */
-				Note n = {title, text, prio};
-				temporary_notes.push_back(n);// TODO: Emplace
+				temporary_notes.emplace_back(Note{title, text, prio});
 				continue;
 			}
 			if( (nPos = line.find(":")) != std::string::npos ){
@@ -157,19 +149,18 @@ private:
 	}
 	/* Verify the temporary notes and add the tasks to the notify queue */
 	void prepareTasks(){
-		Note cur, n;
+		Note currentTask, newTask;
 		int prio=-1;
 		while(!temporary_notes.empty()){
-			cur = temporary_notes.back();
+			currentTask = temporary_notes.back();
 			temporary_notes.pop_back();
-			//std::cout << "*" << cur.title << "* [" << cur.text << "] (" << cur.prio << ")" << std::endl;
-			if(cur.prio > prio){
-				n = cur;
-				prio = cur.prio;
+			if(currentTask.prio > prio){
+				newTask = currentTask;
+				prio = currentTask.prio;
 			}
 		}
 		if(prio > -1)
-			addNotification(n);
+			notification_queue.push(newTask);//Add Notification to queue
 	}
 
 	std::queue <Note> notification_queue;

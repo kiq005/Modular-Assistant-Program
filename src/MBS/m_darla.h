@@ -39,6 +39,7 @@ public:
 
 private:
 	/* DEBUG */
+	/*
 	void printqueue(){
 		int i;
 		std::cout << "----- LOG -----" << std::endl;
@@ -47,7 +48,7 @@ private:
 		}
 		std::cout << "----- END -----" << std::endl;
 	}
-
+	*/
 
 	std::string *queue;
 	int			size;
