@@ -5,6 +5,7 @@ private:
 	std::string fileName;
 	PyObject* module;
 	PyObject* inputFunction;
+	PyObject* responseFunction;
 	PyObject* loopFunction;
 	PyObject* destroyFunction;
 public:
@@ -14,6 +15,7 @@ public:
 		Py_Initialize();
 		module = PyImport_ImportModule(fileName.c_str());
 		inputFunction = PyObject_GetAttrString(module,(char*)"input");
+		responseFunction = PyObject_GetAttrString(module,(char*)"respond");
 		loopFunction = PyObject_GetAttrString(module,(char*)"loop");
 		destroyFunction = PyObject_GetAttrString(module,(char*)"destroy");
 		Py_Finalize();
@@ -24,6 +26,16 @@ public:
 			return "";
 		Py_Initialize();
 		PyObject* myResult = PyObject_CallFunction(inputFunction, (char*)"s", inp.c_str() );
+		std::string ret = PyString_AsString(myResult);
+		Py_Finalize();
+		return ret;
+	}
+
+	std::string respond(std::string inp){
+		if( not responseFunction )
+			return "";
+		Py_Initialize();
+		PyObject* myResult = PyObject_CallFunction(responseFunction, (char*)"s", inp.c_str());
 		std::string ret = PyString_AsString(myResult);
 		Py_Finalize();
 		return ret;

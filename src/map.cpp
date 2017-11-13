@@ -16,11 +16,14 @@ int main(){
 	//manager.addModule<TestModule>("Module 3-2 sec").setLoopTime(3 SECONDS);
 	//manager.addModule<TestModule>("Module 2 sec").setLoopTime(2 SECONDS);
 	//manager.addModule<PythonModule>("p_module2").setLoopTime(2 SECONDS);
-	manager.addModule<ReminderModule>().setLoopTime(5).setOutputComponent(nc);
+
+	//manager.addModule<TestModule>("Please Confirm...");
+	manager.addModule<ReminderModule>().setLoopTime(5 SECONDS).setOutputComponent(nc);
 	manager.addModule<DarlaModule>();
-	manager.addModule<CalculatorModule>();
-	manager.addModule<PythonModule>("p_module1");
-	
+	//manager.addModule<CalculatorModule>();
+	//manager.addModule<PythonModule>("p_module1");
+
+	manager.addModule<ChatterModule>("Map");
 	/* Run the Program */
 	manager.init();
 

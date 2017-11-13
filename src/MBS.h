@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <vector>
+#include <queue>
 #include <memory>
 #include <algorithm>
 #include <bitset>
@@ -19,6 +20,8 @@ class OutputComponent;
 #define SECONDS *1
 #define MINUTES *60
 #define HOURS *3600
+
+#define CMD_SIZE 6
 
 /* Output Component Class. They are responsible to display
  * outputs to the user. The default output component send
@@ -78,6 +81,13 @@ public:
 		(void)inp;
 		return "";
 	}
+	/* Answer something, after been waiting for a response.
+	 * 
+	 */
+	virtual std::string respond(std::string inp){
+		(void)inp;
+		return "";
+	}
 	/* Loop function. Shall be overridden by loop modules.*/
 	virtual void loop(){return;}
 	/* Send a message to the output component */
@@ -103,7 +113,8 @@ bool sortByLoopTime(const std::unique_ptr<Module> &A, const std::unique_ptr<Modu
  */
 class Manager{
 private:
-	std::vector<std::unique_ptr<Module>> modules;
+	std::vector<Module*> modules;
+	std::vector<Module*> modules_waiting_for_confirmation; // TODO: Queue
 
 	long t; // Loop counter
 	bool r; // Should Refresh?
@@ -112,21 +123,36 @@ public:
 	/* Constructor */
 	Manager():t(0),r(false),running(true){}
 
+	inline std::string process(Module* m, const std::string& out){
+		if(out.substr(0, CMD_SIZE) == "$EXIT$"){// Received a command to Exit
+			running = false;
+			return out.substr(CMD_SIZE, out.size());
+		}
+		else if(out.substr(0, CMD_SIZE) == "$CONF$"){
+			modules_waiting_for_confirmation.push_back(m);
+			return out.substr(CMD_SIZE, out.size());
+		}
+		return out;
+	}
 	/* 
 	 * Returns the output from the first input module that answers.
 	 */
 	std::string input(std::string inp){
 		std::string out;
+		/* Confirmation Input */
+		while(modules_waiting_for_confirmation.size() > 0){
+			Module* m = modules_waiting_for_confirmation.back();
+			modules_waiting_for_confirmation.pop_back();
+			out = m->respond(inp);
+			if( out.length()>0 ){
+				return process(m, out);
+			}
+		}
+		/* Normal Input */
 		for(auto& m : modules){
 			out = m->input(inp);
 			if( out.length()>0 ){
-				if(out == "$EXIT$"){// Received a command to Exit
-					running = false;
-					break;
-				}
-				else{
-					return out;
-				}
+				return process(m, out);
 			}
 		}
 		return "";
@@ -140,9 +166,9 @@ public:
 		while(active()){
 			std::string str, ret;
 			std::getline(std::cin,  str);// TODO: It shall use a default input module!
-			start_clock;
+			//start_clock;
 			ret = input(str);
-			end_and_show;
+			//end_and_show;
 			std::cout << ret << std::endl;// TODO: It shall use a default output module
 		}
 	}
@@ -180,8 +206,10 @@ public:
 	void refresh(){
 		//if(not r) return;
 		modules.erase(std::remove_if(std::begin(modules), std::end(modules),
-			[](const std::unique_ptr<Module> &tempModule) {
+			[](const Module* tempModule){
+			//[](const std::unique_ptr<Module> &tempModule) {
 				return !tempModule->isActive();
+			//	return !tempModule->isActive();
 			}),
 			std::end(modules));
 		//r = false;
@@ -196,8 +224,9 @@ public:
 	T& addModule(TArgs&&... mArgs){
 		T* m(new T(std::forward<TArgs>(mArgs)...));
 		m->manager = this;
-		std::unique_ptr<Module> uPtr( m );
-		modules.emplace_back(std::move(uPtr));
+		//std::unique_ptr<Module> uPtr( m );
+		//modules.emplace_back(std::move(uPtr));
+		modules.emplace_back(m);
 		return *m;
 	}
 	/* Prepare:

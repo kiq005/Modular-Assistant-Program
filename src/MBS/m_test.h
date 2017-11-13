@@ -11,4 +11,21 @@ public:
 	void loop() override{
 		output(name);
 	}
+
+	std::string input(std::string input){
+		if(input == "I'm ready!"){
+			return "$CONF$Are you sure?";
+		}
+		return "";
+	}
+
+	std::string respond(std::string input){
+		if(input == "yes"){
+			return "$CONF$Write: I'm sure!";
+		}
+		if(input == "I'm sure!"){
+			return "I knew it!";
+		}
+		return "";
+	}
 };

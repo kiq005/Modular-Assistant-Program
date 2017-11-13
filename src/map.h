@@ -8,6 +8,7 @@
 #include "./MBS/m_reminder.h"
 #include "./MBS/m_darla.h"
 #include "./MBS/m_calculator.h"
+#include "./MBS/m_chatter.h"
 #include "./MBS/m_python_test.h"
 /* Components */
 #include "./MBS/c_moutput.h"
